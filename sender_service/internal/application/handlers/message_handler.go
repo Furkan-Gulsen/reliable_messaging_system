@@ -9,6 +9,7 @@ import (
 	"github.com/Furkan-Gulsen/reliable_messaging_system/shared/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type MessageHandler struct {
@@ -16,8 +17,8 @@ type MessageHandler struct {
 }
 
 type SendMessageRequest struct {
-	To      string `json:"to" binding:"required" example:"+90111111111"`
-	Content string `json:"content" binding:"required" example:"project1"`
+	To      string `json:"to" binding:"required,e164" error:"Phone number must be in E.164 format (e.g., +90111111111)" example:"+90111111111"`
+	Content string `json:"content" binding:"required,max=250" error:"Content must not exceed 250 characters" example:"Your message content"`
 }
 
 type SendMessageResponse struct {
@@ -49,6 +50,24 @@ func NewMessageHandler(service ports.MessageService) *MessageHandler {
 func (h *MessageHandler) SendMessage(c *gin.Context) {
 	var req SendMessageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		if ve, ok := err.(validator.ValidationErrors); ok {
+			errors := make(map[string]string)
+			for _, e := range ve {
+				field := e.Field()
+				if e.Tag() == "required" {
+					errors[field] = field + " field is required"
+				} else {
+					switch field {
+					case "Content":
+						errors[field] = "Content must not exceed 250 characters"
+					case "To":
+						errors[field] = "Phone number must be in E.164 format (e.g., +90111111111)"
+					}
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"errors": errors})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

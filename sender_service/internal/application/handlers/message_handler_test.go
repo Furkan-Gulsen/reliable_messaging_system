@@ -64,6 +64,33 @@ func TestMessageHandler_SendMessage(t *testing.T) {
 				Message: "Accepted",
 			},
 		},
+		{
+			name: "validation error - content too long",
+			request: SendMessageRequest{
+				Content: string(make([]byte, 251)),
+				To:      "+905321234567",
+			},
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "validation error - invalid phone number format",
+			request: SendMessageRequest{
+				Content: "test content",
+				To:      "05321234111",
+			},
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "validation error - empty required fields",
+			request: SendMessageRequest{
+				Content: "",
+				To:      "",
+			},
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range tests {
