@@ -1,0 +1,164 @@
+basePath: /api/v1
+definitions:
+  models.Message:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      retry_count:
+        type: integer
+      status:
+        type: string
+      to:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  sender_service_internal_application_handlers.ListMessagesResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+    type: object
+  sender_service_internal_application_handlers.SendMessageRequest:
+    properties:
+      content:
+        example: project1
+        type: string
+      to:
+        example: "+90111111111"
+        type: string
+    required:
+    - content
+    - to
+    type: object
+  sender_service_internal_application_handlers.SendMessageResponse:
+    properties:
+      message:
+        example: Accepted
+        type: string
+      messageId:
+        example: 67f2f8a8-ea58-4ed0-a6f9-ff217df4d849
+        type: string
+    type: object
+  service.HealthStatus:
+    properties:
+      mongodb:
+        type: boolean
+      rabbitmq:
+        type: boolean
+      redis:
+        type: boolean
+      service:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is the Message Sender Service API
+  title: Message Sender Service API
+  version: "1.0"
+paths:
+  /messages:
+    get:
+      description: Get all messages with their current status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sender_service_internal_application_handlers.ListMessagesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all messages
+      tags:
+      - messages
+    post:
+      consumes:
+      - application/json
+      description: Send a new message to be processed
+      parameters:
+      - description: Message to send
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/sender_service_internal_application_handlers.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sender_service_internal_application_handlers.SendMessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send a new message
+      tags:
+      - messages
+  /scheduler/start:
+    post:
+      description: Start the message processing scheduler
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start scheduler
+      tags:
+      - scheduler
+  /scheduler/stop:
+    post:
+      description: Stop the message processing scheduler
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stop scheduler
+      tags:
+      - scheduler
+  /status:
+    get:
+      description: Get the health status of the service and its dependencies (MongoDB,
+        RabbitMQ)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.HealthStatus'
+      summary: Get service health status
+      tags:
+      - health
+schemes:
+- http
+swagger: "2.0"

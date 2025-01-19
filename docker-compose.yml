@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - message_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - message_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  
+      - "15672:15672" 
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - message_network
+
+  sender_service:
+    build:
+      context: .
+      dockerfile: sender_service/Dockerfile
+    ports:
+      - "8080:8080" 
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=message_system
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
+      - MESSAGE_BATCH_SIZE=2
+      - POLL_INTERVAL_SECONDS=120
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - message_network
+
+  processor_service:
+    build:
+      context: .
+      dockerfile: processor_service/Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=message_system
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
+      - REDIS_URI=redis:6379
+      - WEBHOOK_URL=https://webhook.site/efbcdeba-24dd-474c-8242-739852e0364a
+      - WEBHOOK_TIMEOUT_SECONDS=30
+      - MAX_RETRIES=5
+      - RETRY_INTERVAL_SECONDS=10
+      - DLQ_ALERT_THRESHOLD=10
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - message_network
+
+volumes:
+  mongodb_data: 
+
+networks:
+  message_network:
+    driver: bridge
