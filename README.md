@@ -1,4 +1,4 @@
-# Message Processing System
+# Relable Messaging System
 
 ![system architecture](assets/structure.png)
 
@@ -81,19 +81,26 @@ This pattern helps maintain the integrity of message processing even in scenario
    cd reliable_messaging_system
    ```
 
-2. Install dependencies:
+2. Build and run the services using Docker Compose:
    ```bash
-   make dev-deps
-   ```
-
-3. Start the infrastructure services:
-   ```bash
+   make docker-build
    make docker-run
    ```
 
-4. Build and run the services:
+3. Access running services:
+   - RabbitMQ Management UI: `http://localhost:15672` (default user/pass: `guest/guest`)
+   - MongoDB: `localhost:27018`
+   - Redis: `localhost:6380`
+   - Swagger: `localhost:8080/swagger/index.html`
+
+4. View logs:
    ```bash
-   make run
+   make logs
+   ```
+
+5. Stop services:
+   ```bash
+   make docker-stop
    ```
 
 ## API Endpoints
@@ -145,7 +152,7 @@ WEBHOOK_URL=http://external-service/webhook
 WEBHOOK_TIMEOUT=5s
 
 # Message Processing
-MAX_RETRIES=3
+MAX_RETRIES=5
 STALE_DURATION=4m
 ```
 
@@ -163,21 +170,6 @@ make build
 
 # Clean build artifacts
 make clean
-```
-
-### Docker Operations
-```bash
-# Build Docker images
-make docker-build
-
-# Start services with Docker
-make docker-run
-
-# Stop services
-make docker-stop
-
-# View logs
-make logs
 ```
 
 ### Database Operations
