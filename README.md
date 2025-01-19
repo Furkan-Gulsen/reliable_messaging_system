@@ -1,4 +1,4 @@
-# Relable Messaging System
+# Reliable Messaging System
 
 ![system architecture](assets/structure.png)
 
