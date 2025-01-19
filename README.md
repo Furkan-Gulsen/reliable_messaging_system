@@ -108,26 +108,26 @@ This pattern helps maintain the integrity of message processing even in scenario
 ### Sender Service
 
 #### Message Management
-- `POST /messages`
+- `POST /api/v1/messages`
   - Create a new message
   - Request body: `{"to": "+90111111111", "content": "message content"}`
 
-- `GET /messages`
+- `GET /api/v1/messages`
   - List all messages with their current status
 
 #### Scheduler Management
-- `POST /scheduler/start`
+- `POST /api/v1/scheduler/start`
   - Start the message processing scheduler
-- `POST /scheduler/stop`
+- `POST /api/v1/scheduler/stop`
   - Stop the message processing scheduler
 
 #### Health Check
-- `GET /status`
+- `GET /api/v1/status`
   - Get service health status including MongoDB and RabbitMQ connectivity
 
 ### Processor Service
 
-- `GET /status`
+- `GET /api/v1/status`
   - Get service health status including webhook availability
 
 ## Configuration
